@@ -35,7 +35,8 @@ class Bible
    private:
       string infile;		// file path name
       ifstream instream;	// input stream, used when file is open
-      bool isOpen;			// true if file is open
+      bool isOpen;
+      // true if file is open
       // OPTIONAL: you may add variables to keep track of
       // the current line and/or reference when scanning the file
 

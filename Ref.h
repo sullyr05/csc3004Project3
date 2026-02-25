@@ -55,7 +55,7 @@ class Ref
       bool operator==(const Ref &) const;
 	  
       // OPTIONAL: < and > comparisons for Ref objects might also be useful
-   
+      bool operator<(const Ref &) const;
       // REQUIRED: Display the reference on cout, example output: John 3:16
 	  // Your version of display should show the book name
       // corresponding to the stored book number.

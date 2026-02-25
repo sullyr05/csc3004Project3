@@ -19,14 +19,21 @@
 
 using namespace std;
 
+map<Ref, int> index; //initialize index map
+
 // Default constructor
 Bible::Bible()
 { 
    infile = "/home/class/csc3004/Bibles/web-complete";
+   createTextIndex(infile);
+
 }
 
 // Constructor – pass bible filename
-Bible::Bible(const string s) { infile = s;}
+Bible::Bible(const string s) {
+   infile = s;
+   createTextIndex(infile);
+   }
 
 // REQUIRED: lookup finds a given verse in this Bible
 Verse Bible::lookup(Ref ref, LookupResult& status)
@@ -114,3 +121,24 @@ Ref Bible::prev(const Ref ref, LookupResult& status)
 {
    return ref;
 }
+
+void Bible::createTextIndex(string infile){
+   ifstream infileStream(infile);
+   int pos;
+   string line;
+
+   if (!infileStream){ 
+      cerr << "Error opening file:" << infile << endl;
+       //if opening file fails
+   }
+   else {
+   pos = infileStream.tellg(); //get file position at beginning of line   
+   while (getline(infileStream, line)){
+      Verse aVerse(line);
+      index.insert(pair<Ref,int>(aVerse.getRef(), pos)); //insert reference and file position into index map
+      pos = infileStream.tellg(); //update file position for next line
+      }
+   }
+}
+
+

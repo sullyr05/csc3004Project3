@@ -23,6 +23,7 @@
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 
 using namespace std;
 
@@ -35,7 +36,8 @@ class Bible
    private:
       string infile;		// file path name
       ifstream instream;	// input stream, used when file is open
-      bool isOpen;			// true if file is open
+      bool isOpen;
+      // true if file is open
       // OPTIONAL: you may add variables to keep track of
       // the current line and/or reference when scanning the file
 
@@ -45,8 +47,9 @@ class Bible
    
       // REQUIRED: Find and return a verse in this Bible, given a reference
       Verse lookup(const Ref ref, LookupResult& status);
-	  
-   
+      void createTextIndex(string infile); 
+      map<Ref, int> index;
+
       // REQUIRED:
       // Return the next verse from the Bible file stream if the file is open.
       // If the file is not open, open the file and return the first verse.

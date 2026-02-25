@@ -103,6 +103,13 @@ bool Ref::operator==(const Ref & ref) const
 
 // OPTIONAL: define < and > comparisons
 
+bool Ref::operator<(const Ref & ref) const {
+   if ((book < ref.book) || (book == ref.book && chapter < ref.chapter) || (book == ref.book && chapter == ref.chapter && verse < ref.verse))
+      return true;
+   else
+      return false;
+}
+
 bool Ref::isRefValid(Ref ref){ //custom isRefValid function to check for valid references, also provides specific error messages 
    if (ref.getChapter() > bookInfo[ref.getBook()-1].chapterCount){ //check if chapter number is valid for the book
       cout << "<p>There is no chapter " << ref.getChapter() << " in " //we can get specific information for chapter number using our vector

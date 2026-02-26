@@ -124,18 +124,17 @@ Ref Bible::prev(const Ref ref, LookupResult& status)
 
 void Bible::createTextIndex(string infile){
    ifstream infileStream(infile);
-   int pos;
+   int pos = 0;
    string line;
 
    if (!infileStream){ 
       cerr << "Error opening file:" << infile << endl;
        //if opening file fails
    }
-   else {
-   pos = infileStream.tellg(); //get file position at beginning of line   
+   else { //get file position at beginning of line   
    while (getline(infileStream, line)){
       Verse aVerse(line);
-      index.insert(pair<Ref,int>(aVerse.getRef(), pos)); //insert reference and file position into index map
+      index[aVerse.getRef()] = pos; //insert reference and file position into index map
       pos = infileStream.tellg(); //update file position for next line
       }
    }

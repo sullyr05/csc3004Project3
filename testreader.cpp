@@ -23,22 +23,45 @@ int main (int argc, char **argv)
 {
    // Create Bible object to process the raw text file
    Bible webBible("/home/class/csc3004/Bibles/web-complete");
-    
+
    Verse verse;
    int bookNum, chapterNum, verseNum, numOfVerses;
    LookupResult result;
-    
-   cout << "Using Bible from: ";
-   webBible.display();
+   if (argc < 4 || argc > 5){
+      cerr << "Wrong Usage! Proper Usage : " << argv[0] << " 1 1 1 (1)" << endl;
+      return 1;
+   }
+   
+   bookNum = atoi(argv[1]);
+   chapterNum = atoi(argv[2]); // cli implementation
+   verseNum = atoi(argv[3]);
+
+   // Create a reference from the numbers
+   Ref ref(bookNum, chapterNum, verseNum);
+
+   // Use the Bible object to retrieve the verse by reference
+   cout << "Looking up reference: ";
+   ref.display();
+   cout << endl;
+
+   verse = webBible.lookup(ref, result);
+   
+   if (result != SUCCESS){ //ensure success before attempting display
+      cout << "Result status: " << webBible.error(result) << endl;
+   }
+   else {
+      cout << "Verse Found! Result status: " << webBible.error(result) << endl;
+      verse.display();
+   }
 
 
-   cout << "# of References in the index: ";
-   cout << webBible.index.size() << endl; 
-   auto byteOffset = prev(webBible.index.end());
-   cout << "Byte offset of the last verse in the index: " << byteOffset->second << endl;
+   if(argc == 5){ //multiple verse implementation
+      numOfVerses = atoi(argv[4]);
 
-
-   cout << "Byte offset for Genesis 1:1: " << webBible.index[Ref(1,1,1)] << endl;
-   cout << "Byte offset for Genesis 1:2: " << webBible.index[Ref(1,1,2)] << endl;
-   cout << "Byte offset for Genesis 1:3: " << webBible.index[Ref(1,1,3)] << endl;
+      for(int i = 1; i < numOfVerses; i++){
+         verse = webBible.nextVerse(result);
+         verse.display();
+      }
+   }
+   cout << endl;
 }

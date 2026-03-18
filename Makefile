@@ -24,7 +24,7 @@ all:	testreader bibleajax.cpp # PutCGI PutHTML
 # compiled classes from Project 1 to be linked into the executable program (Bible.o, Ref.o, Verse.o)
 bibleajax.cgi:	bibleajax.o Bible.o Ref.o Verse.o testreader.o
 	 $(CC) $(CFLAGS) -o bibleajax.cgi bibleajax.o Bible.o Ref.o Verse.o testreader.o -lcgicc
-	# -l option is necessary to link with cgicc library
+#   -l option is necessary to link with cgicc library
 
 # main program to handle AJAX/CGI requests for Bible references
 # bibleajax.o:	bibleajax.cpp Ref.h Verse.h Bible.h testreader.cpp

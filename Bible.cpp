@@ -39,29 +39,26 @@ Bible::Bible(const string s) {
 Verse Bible::lookup(Ref ref, LookupResult& status)
 { 
    // TODO: scan the file to retrieve the line that holds ref ...
-   if(!instream.is_open()){
-      instream.open(infile);
-      if (!instream){ //if opening file fails
-         status = OTHER;
-         return Verse();
-      }
-   }
 
+   instream.open(infile);
+
+   if (!instream){ 
+      cerr << "Error opening file:" << infile << endl;
+      status = NO_VERSE; //no verse found
+	   return Verse(); // default to be returned
+       //if opening file fails
+   }
+   // we gotta read through the lines firstt tho
+   long pos = index[Ref(ref.getBook(), ref.getChapter(), ref.getVerse())];
+   instream.seekg(pos);
+   
    string line;
+   getline(instream,line);
 
-   while (getline(instream , line)) { //get line loop
+   status = SUCCESS;
+   Verse verse(line);
+   return verse;
 
-	   Verse aVerse(line);
-	   
-      // logical test to see if the first line contains the reference we are looking for,
-      // if not we move on to the next line until we match reference
-	   if (aVerse.getRef() == ref){
-		   status = SUCCESS;
-         return aVerse; 
-	   }
-   }
-   status = NO_VERSE; //no verse found
-	return Verse(); // default to be returned
    // create and return the verse object
    //Verse aVerse;   // default verse, to be replaced by a Verse object
 	                // that is constructed from a line in the file
@@ -71,7 +68,7 @@ Verse Bible::lookup(Ref ref, LookupResult& status)
 // If the file is not open, open the file and return the first verse.
 Verse Bible::nextVerse(LookupResult& status)
 {
-   if (!instream.is_open()){
+   if (!instream){
       instream.open(infile);
       string firstLine;
       getline(instream, firstLine);
@@ -113,7 +110,9 @@ void Bible::display()
 // OPTIONAL: Return the reference after the given ref
 Ref Bible::next(const Ref ref, LookupResult& status)
 {
-   return ref;
+   auto it = index.find(ref);
+   it++;
+   return it->first;
 }
 
 // OPTIONAL: Return the reference before the given ref
@@ -124,14 +123,15 @@ Ref Bible::prev(const Ref ref, LookupResult& status)
 
 void Bible::createTextIndex(string infile){
    ifstream infileStream(infile);
-   int pos = 0;
+   int pos;
    string line;
 
    if (!infileStream){ 
       cerr << "Error opening file:" << infile << endl;
        //if opening file fails
    }
-   else { //get file position at beginning of line   
+   else {
+   pos = infileStream.tellg(); //get file position at beginning of line   
    while (getline(infileStream, line)){
       Verse aVerse(line);
       index[aVerse.getRef()] = pos; //insert reference and file position into index map
@@ -139,5 +139,3 @@ void Bible::createTextIndex(string infile){
       }
    }
 }
-
-

@@ -8,60 +8,58 @@
  * STUDENT NAME: Solomon Robinson
  */
 
-#include "Ref.h"
-#include "Verse.h"
-#include "Bible.h"
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <stdio.h>
-#include <stdlib.h>
+#include "fifo.h"
+#define logging
+#define LOG_FILENAME "/tmp/solrobinson-testreader.log"
+#include "logfile.h"
 
 using namespace std;
 
 int main (int argc, char **argv)
 {
-   // Create Bible object to process the raw text file
-   Bible webBible("/home/class/csc3004/Bibles/web-complete");
+   #ifdef logging logFile.open(LogFile, ios::out); #endif
 
-   Verse verse;
-   int bookNum, chapterNum, verseNum, numOfVerses;
-   LookupResult result;
+
+   string bookNum, chapterNum, verseNum, numOfVerses;
+   numOfVerses = "1"; // default one verse
+   
    if (argc < 4 || argc > 5){
       cerr << "Wrong Usage! Proper Usage : " << argv[0] << " 1 1 1 (1)" << endl;
       return 1;
    }
-   
-   bookNum = atoi(argv[1]);
-   chapterNum = atoi(argv[2]); // cli implementation
-   verseNum = atoi(argv[3]);
 
-   // Create a reference from the numbers
-   Ref ref(bookNum, chapterNum, verseNum);
+   bookNum = argv[1];
+   chapterNum = argv[2]; // cli implementation
+   verseNum = argv[3];
 
-   // Use the Bible object to retrieve the verse by reference
-   cout << "Looking up reference: ";
-   ref.display();
-   cout << endl;
-
-   verse = webBible.lookup(ref, result);
-   
-   if (result != SUCCESS){ //ensure success before attempting display
-      cout << "Result status: " << webBible.error(result) << endl;
-   }
-   else {
-      cout << "Verse Found! Result status: " << webBible.error(result) << endl;
-      verse.display();
+   if (argc > 4){
+      numOfVerses = argv[4];
    }
 
 
-   if(argc == 5){ //multiple verse implementation
-      numOfVerses = atoi(argv[4]);
+   Fifo sendFifo("bibleRequest");
+   Fifo recFifo("bibleReply");
 
-      for(int i = 1; i < numOfVerses; i++){
-         verse = webBible.nextVerse(result);
-         verse.display();
-      }
+   sendFifo.openwrite();
+
+   string req = bookNum + ":" + chapterNum + ":" + verseNum + ":" + numOfVerses; //send request
+   log("(CLIENT) " << req << endl);
+   cout << "(CLIENT) " << req << endl;
+   sendFifo.send(req);
+
+   recFifo.openread(); // receive reply
+   string reply = "";
+   while (reply != "$end") {
+      reply = recFifo.recv();
+      cout << reply << endl; //display verse
+      log("(CLIENT) " << reply << endl); //log verse
    }
-   cout << endl;
+
+   recFifo.fifoclose();
+   sendFifo.fifoclose();
+   log("(CLIENT) Reply fifo closed" << endl);
+   return 0;
 }
+#endif

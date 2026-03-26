@@ -18,7 +18,7 @@ USER= solrobinson
 CC= g++
 CFLAGS= -g -std=c++11
 
-all:	testreader bibleajax.cpp # PutCGI PutHTML
+all:	testreader biblelookupserver bibleajax.cpp # PutCGI PutHTML
 
 # TODO: For bibleajax.cgi, add dependencies to include
 # compiled classes from Project 1 to be linked into the executable program (Bible.o, Ref.o, Verse.o)
@@ -30,8 +30,8 @@ bibleajax.cgi:	bibleajax.o Bible.o Ref.o Verse.o testreader.o
 # bibleajax.o:	bibleajax.cpp Ref.h Verse.h Bible.h testreader.cpp
 # 	$(CC) $(CFLAGS) -c bibleajax.cpp
 
-testreader: testreader.o Bible.o Ref.o Verse.o
-	$(CC) $(CFLAGS) -o testreader testreader.o Bible.o Ref.o Verse.o
+testreader: testreader.o Bible.o Ref.o Verse.o fifo.o
+	$(CC) $(CFLAGS) -o testreader testreader.o Bible.o Ref.o Verse.o fifo.o
 
 # TODO: copy targets to build classes from Project 1:
 # Bible.o, Ref.o, Verse.o
@@ -49,8 +49,17 @@ Bible.o: Ref.h Verse.h Bible.h Bible.cpp
 	$(CC) $(CFLAGS) -c Bible.cpp
 
 # testreader object
-testreader.o: Ref.h Verse.h Bible.h testreader.cpp
+testreader.o: Ref.h Verse.h Bible.h testreader.cpp fifo.h logfile.h
 	$(CC) $(CFLAGS) -c testreader.cpp
+
+fifo.o: fifo.cpp fifo.h
+	$(CC) $(CFLAGS) -c fifo.cpp
+
+biblelookupserver.o: biblelookupserver.cpp fifo.h logfile.h
+	$(CC) $(CFLAGS) -c biblelookupserver.cpp
+
+biblelookupserver: biblelookupserver.o fifo.o Ref.o Verse.o Bible.o
+	$(CC) $(CFLAGS) -o biblelookupserver biblelookupserver.o  fifo.o Ref.o Verse.o Bible.o
 
 # PutCGI:	bibleajax.cgi
 # 	chmod 755 bibleajax.cgi

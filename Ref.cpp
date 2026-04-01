@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 using namespace std;
 
 vector<BookInfo> Ref::bookInfo = { //Create vector instead of array so we know how many chapters are in each book
@@ -90,7 +91,6 @@ int Ref::getChapter() {return chapter;}	 // Access chapter number
 int Ref::getVerse() {return verse;};     // Access verse number
 string Ref::getBookName() {return bookInfo[book-1].name;} //get book name from vector using book number as index
 
-
 // REQUIRED: == comparison
 bool Ref::operator==(const Ref & ref) const
 {
@@ -112,13 +112,13 @@ bool Ref::operator<(const Ref & ref) const {
 
 bool Ref::isRefValid(Ref ref){ //custom isRefValid function to check for valid references, also provides specific error messages 
    if (ref.getChapter() > bookInfo[ref.getBook()-1].chapterCount){ //check if chapter number is valid for the book
-      cout << "<p>There is no chapter " << ref.getChapter() << " in " //we can get specific information for chapter number using our vector
-      << ref.getBookName() << ".</p>" << endl;
+      cout << "There is no chapter " << ref.getChapter() << " in " //we can get specific information for chapter number using our vector
+      << ref.getBookName() << endl;
       return false;
    }
    else if (ref.getVerse() > 176){ //max verse count is 176 in Psalms 119:176
-      cout << "<p>There is no verse " << ref.getVerse() << " in "
-      << ref.getBookName() << " chapter " << ref.getChapter() << ".</p>" << endl;
+      cout << "There is no verse " << ref.getVerse() << " in "
+      << ref.getBookName() << " chapter " << ref.getChapter() << endl;
       return false;
    }
 	return true;
@@ -128,4 +128,10 @@ void Ref::display()
 { 	
    // TODO: modify display function to show book name instead of book number
    cout << " " << bookInfo[book-1].name << " " << chapter << ":" << verse; //edit display to use vector instead of array
+}
+
+string Ref::toString(){ //for ref output in proj3part3
+   return bookInfo[book-1].name + " " + 
+          to_string(chapter) + ":" +
+          to_string(verse);
 }

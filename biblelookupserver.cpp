@@ -31,7 +31,7 @@ int main()
 
    string line;  // A line from the text file
    string reply; //reply to send back to client
-   LookupResult status; //for lookup
+   LookupResult status = OTHER; //for lookup
 
    /* Create the communication fifos */
    Fifo recfifo("bibleRequest");
@@ -66,31 +66,45 @@ int main()
       //convert to int for lookup!
       int bookI, chapterI, verseI, numOfVersesI;
 
+
       bookI = stoi(book);
       chapterI = stoi(chapter);
       verseI = stoi(verseStr);
       numOfVersesI = stoi(numOfVerses);
 
-
       Ref ref(bookI,chapterI,verseI); //standard stuff for lookup
       Verse verse = webBible.lookup(ref,status);
-      string reply = ref.getBookName() + " " + chapter + ":" + verseStr + " (" + numOfVerses + " verses) " + verse.getVerse(); //populate our reply!
+      cout << "(SERVER) STATUS VARIABLE = " << status;
 
+      if (ref.isRefValid(ref) && status == SUCCESS){
+         reply = verse.getRef().toString() +
+         " (" + numOfVerses + " verses) " + verse.getVerse(); //populate our reply!
 
-      if (status == SUCCESS){
          sendfifo.send(reply); //send out reply
          log("Server requesting " + book + ":" + chapter + ":" + verseStr + ":" + numOfVerses);
          cout << "(SERVER) Requesting " + book + ":" + chapter + ":" + verseStr + ":" + numOfVerses << endl;
 
          for (int i = 1; i < numOfVersesI; i++){ //multiple verse implementation
+            Verse tempV = verse;
             verse = webBible.nextVerse(status);
-
-            reply = verse.getVerse();
-            sendfifo.send(reply); //semd each verse individually over pipe
+            if (verse.getRef().getChapter() != tempV.getRef().getChapter()){ //newline between chapters
+               reply = verse.getRef().toString() + " " + verse.getVerse() + "\n\n";
+               sendfifo.send(reply);
+               }
+            else {
+            reply = verse.getRef().toString() + " " + verse.getVerse();
+            sendfifo.send(reply); //send each verse individually over pipe
+            }
          }
       } 
+      else if (ref.getChapter() <= 0 || ref.getVerse() <= 0){
+         cout << "You must enter a positive integer for chapter and verse numbers. ";
+         log ("Negative integer attempted for chapter/verse");
+         sendfifo.send("Please enter a positive integer for chapter and verse numbers!");
+      }
       else {
-         sendfifo.send(webBible.error(status));
+         sendfifo.send(webBible.error(status) + "\n There is no verse " + 
+         verseStr + " in chapter " + chapter + " of the book of that book!\n");
          log("Result status: " + webBible.error(status));
          cout << "Result status: " + webBible.error(status) << endl;
       }

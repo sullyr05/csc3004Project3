@@ -48,6 +48,19 @@ Verse Bible::lookup(Ref ref, LookupResult& status)
 	   return Verse(); // default to be returned
        //if opening file fails
    }
+
+
+   if (ref.getChapter() <= 0){
+      cerr << "Negative Chapter ";
+      status = NO_CHAPTER;
+      return Verse();
+   }
+   else if (ref.getVerse() <= 0){
+      cerr << "Negative Verse ";
+      status = NO_VERSE;
+      return Verse();
+   }
+
    // we gotta read through the lines firstt tho
    long pos = index[Ref(ref.getBook(), ref.getChapter(), ref.getVerse())];
    instream.seekg(pos);
@@ -58,11 +71,10 @@ Verse Bible::lookup(Ref ref, LookupResult& status)
    status = SUCCESS;
    Verse verse(line);
    return verse;
-
+}
    // create and return the verse object
    //Verse aVerse;   // default verse, to be replaced by a Verse object
 	                // that is constructed from a line in the file
-}
 
 // REQUIRED: Return the next verse from the Bible file stream if the file is open.
 // If the file is not open, open the file and return the first verse.

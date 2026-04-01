@@ -20,12 +20,15 @@
  *
  * STUDENT NAME: Solomon Robinson 
  */
-#include "Ref.h"
-#include "Verse.h"
-#include "Bible.h"
+#include "fifo.h"
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
+
+#define logging
+#define LOG_FILENAME "/tmp/solrobinson-testreader.log"
+#include "logfile.h"
+
 
 /* Required libraries for AJAX to function */
 #include "/home/class/csc3004/cgicc/Cgicc.h"
@@ -37,13 +40,14 @@ using namespace cgicc;
 
 int main()
 {
+   #ifdef logging logFile.open(LogFile, ios::out); #endif
+
    /* A CGI program must send a response header with content type
     * back to the web client before any other output.
     * For an AJAX request, our response is not a complete HTML document,
     * so the response type is just plain text to insert into the web page.
     */
    cout << "Content-Type: text/plain\n\n";
-
    Cgicc cgi;  // create object used to access CGI request data
 
    // GET THE INPUT DATA
@@ -54,50 +58,33 @@ int main()
    form_iterator chapter = cgi.getElement("chapter");
    form_iterator verse = cgi.getElement("verse");
    form_iterator nv = cgi.getElement("num_verse");
+    
 
-   // Convert and check input data
+   string bookNum = book->getValue();
+   string verseNum = verse->getValue(); //assign values from form iterators to variables for sending on the pipe
+   string chapterNum = chapter->getValue();
+   string numOfVerses = nv->getValue();
 
-   // TODO: OTHER INPUT VALUE CHECKS ARE NEEDED ... but that's up to you!	
+   Fifo sendFifo("bibleRequest");
+   Fifo recFifo("bibleReply");
 
-   /* SEND BACK THE RESULTS
-    * Finally we send the result back to the client on the standard output stream
-    * in HTML text format.
-    * This string will be inserted as is inside a container on the web page,
-    * so we must include HTML formatting commands to make things look presentable!
-    */      
-   /* TODO: PUT CODE HERE TO CALL YOUR BIBLE CLASS FUNCTIONS
-    *        TO LOOK UP THE REQUESTED VERSES
-    */
-   Bible webBible("/home/class/csc3004/Bibles/web-complete"); // create Bible object to access the bible file
-   int bookNum = book->getIntegerValue();
-   int verseNum = verse->getIntegerValue(); //assign values from form iterators to variables for creation of ref object
-   int chapterNum = chapter->getIntegerValue();
-   int numOfVerses = nv->getIntegerValue();
-   LookupResult result;
+   sendFifo.openwrite();
 
-   Ref ref(bookNum, chapterNum, verseNum); //create ref object from form input values
-   Verse myVerse = webBible.lookup(ref,result); //lookup verse
+   string req = bookNum + ":" + chapterNum + ":" + verseNum + ":" + numOfVerses; //send request
+   log("(CLIENT) " << req << endl);
+   sendFifo.send(req);
 
-   if (ref.isRefValid(ref) && result == SUCCESS){ //if we have a valid reference and the verse was found, display the verse
-      myVerse.display();
-
-      for (int i = 1; i < numOfVerses; i++){ //implementation for retrieval of multiple verses
-      Verse tempV = myVerse;
-      myVerse = webBible.nextVerse(result);
-      if (myVerse.getRef().getChapter() != tempV.getRef().getChapter()){ //newline between chapters
-         cout << "<br><br>\n";
-      }
-      cout << "<br>";
-      myVerse.display();
-    }
+   recFifo.openread(); // receive reply
+   string reply = "";
+   for (reply = recFifo.recv(); reply != "$end"; reply = recFifo.recv()) {
+   cout << "<p>" << reply << "</p>";
+   log("(CLIENT) " << reply << endl);
    }
-   else if (ref.getChapter() <= 0 || ref.getVerse() <= 0){ //check for positive integers
-      cout << "<p> You must enter a positive integer for chapter and verse numbers. </p>" << endl;
-   }
-   else{ //otherwise display an error message
-      cout << "<p> " << webBible.error(result) << "\n There is no verse " << 
-      verseNum << " in chapter " << chapterNum << " of the book of " << ref.getBookName() << ".</p>" 
-      << endl;
-    }
+
+   recFifo.fifoclose();
+   sendFifo.fifoclose();
+   log("(CLIENT) Reply fifo closed" << endl);
+
    return 0;
 }
+#endif

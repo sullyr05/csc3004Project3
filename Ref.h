@@ -48,6 +48,7 @@ class Ref
       int getChapter();	// Access chapter number
       int getVerse();	// Access verse number
       string getBookName(); //access book name, used for error mesages
+      string toString();
 
       bool isRefValid(Ref ref); //check if reference is valid
       

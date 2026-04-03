@@ -27,7 +27,7 @@ bibleajax.cgi:	bibleajax.o Bible.o Ref.o Verse.o fifo.o
 #   -l option is necessary to link with cgicc library
 
 # main program to handle AJAX/CGI requests for Bible references
-bibleajax.o:	bibleajax.cpp Ref.h Verse.h Bible.h testreader.cpp
+bibleajax.o:	bibleajax.cpp Ref.h Verse.h Bible.h
 	$(CC) $(CFLAGS) -c bibleajax.cpp
 
 # testreader: testreader.o Bible.o Ref.o Verse.o fifo.o
@@ -60,9 +60,12 @@ biblelookupserver.o: biblelookupserver.cpp fifo.h logfile.h
 
 biblelookupserver: biblelookupserver.o fifo.o Ref.o Verse.o Bible.o
 	$(CC) $(CFLAGS) -o biblelookupserver biblelookupserver.o  fifo.o Ref.o Verse.o Bible.o
-
+#added 3 rm commands to clear pipes and cgi on every make
 PutCGI:	bibleajax.cgi
 	chmod 755 bibleajax.cgi
+	rm /var/www/html/class/csc3004/solrobinson/cgi-bin/bibleajax.cgi
+	rm /home/class/csc3004/tmp/solrobinson_bibleRequest
+	rm /home/class/csc3004/tmp/solrobinson_bibleReply
 	cp bibleajax.cgi /var/www/html/class/csc3004/$(USER)/cgi-bin
 
 	echo "Current contents of your cgi-bin directory: "

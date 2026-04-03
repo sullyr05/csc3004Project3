@@ -19,8 +19,6 @@
 
 using namespace std;
 
-map<Ref, int> index; //initialize index map
-
 // Default constructor
 Bible::Bible()
 { 
@@ -39,16 +37,20 @@ Bible::Bible(const string s) {
 Verse Bible::lookup(Ref ref, LookupResult& status)
 { 
    // TODO: scan the file to retrieve the line that holds ref ...
+   if(!instream.is_open()){
+      instream.open(infile);
 
-   instream.open(infile);
-
-   if (!instream){ 
-      cerr << "Error opening file:" << infile << endl;
-      status = NO_VERSE; //no verse found
-	   return Verse(); // default to be returned
-       //if opening file fails
+      if (!instream){ 
+         cerr << "Error opening file:" << infile << endl;
+         status = NO_VERSE; //no verse found
+         return Verse(); // default to be returned
+         //if opening file fails
    }
-
+}
+   // Clear any error flags from previous operations (e.g., EOF),
+   // then reset file stream to beginning for lookup
+   instream.clear();
+   instream.seekg(0);
 
    if (ref.getChapter() <= 0){
       cerr << "Negative Chapter ";
@@ -61,8 +63,16 @@ Verse Bible::lookup(Ref ref, LookupResult& status)
       return Verse();
    }
 
-   // we gotta read through the lines firstt tho
-   long pos = index[Ref(ref.getBook(), ref.getChapter(), ref.getVerse())];
+   // look up the file position in this Bible's index
+   auto it = this->index.find(Ref(ref.getBook(), ref.getChapter(), ref.getVerse())); // use this keyword instead of the global index
+   if (it == this->index.end()) {
+      status = NO_VERSE;
+      return Verse();
+   }
+
+   long pos = it->second;
+
+   instream.clear();
    instream.seekg(pos);
    
    string line;
@@ -122,7 +132,7 @@ void Bible::display()
 // OPTIONAL: Return the reference after the given ref
 Ref Bible::next(const Ref ref, LookupResult& status)
 {
-   auto it = index.find(ref);
+   auto it = this->index.find(ref);
    it++;
    return it->first;
 }
@@ -143,11 +153,11 @@ void Bible::createTextIndex(string infile){
        //if opening file fails
    }
    else {
-   pos = infileStream.tellg(); //get file position at beginning of line   
-   while (getline(infileStream, line)){
-      Verse aVerse(line);
-      index[aVerse.getRef()] = pos; //insert reference and file position into index map
-      pos = infileStream.tellg(); //update file position for next line
+      pos = infileStream.tellg(); //get file position at beginning of line   
+      while (getline(infileStream, line)){
+         Verse aVerse(line);
+         this->index[aVerse.getRef()] = pos; //insert reference and file position into index map
+         pos = infileStream.tellg(); //update file position for next line
       }
    }
 }

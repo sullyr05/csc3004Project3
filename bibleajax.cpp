@@ -26,7 +26,7 @@
 #include <string.h>
 
 #define logging
-#define LOG_FILENAME "/tmp/solrobinson-testreader.log"
+#define LOG_FILENAME "/tmp/solrobinson-bibleindex.log"
 #include "logfile.h"
 
 
@@ -40,7 +40,9 @@ using namespace cgicc;
 
 int main()
 {
-   #ifdef logging logFile.open(LogFile, ios::out); #endif
+   #ifdef logging
+   logFile.open(logFilename, ios::out);
+   #endif
 
    /* A CGI program must send a response header with content type
     * back to the web client before any other output.
@@ -70,16 +72,20 @@ int main()
 
    sendFifo.openwrite();
 
-   string req = bookNum + ":" + chapterNum + ":" + verseNum + ":" + numOfVerses; //send request
+   string req = bookNum + ":" + chapterNum + ":" + verseNum + ":" + numOfVerses; //make request
    log("(CLIENT) " << req << endl);
-   sendFifo.send(req);
+   sendFifo.send(req); //send request
 
    recFifo.openread(); // receive reply
    string reply = "";
-   for (reply = recFifo.recv(); reply != "$end"; reply = recFifo.recv()) {
-   cout << "<p>" << reply << "</p>";
-   log("(CLIENT) " << reply << endl);
-   }
+   do {
+      reply = recFifo.recv();
+      if (reply == "$end") 
+         break;
+
+      cout << "<p>" << reply << "</p>" << endl;
+      log("(CLIENT) " << reply << endl);
+   } while (true);
 
    recFifo.fifoclose();
    sendFifo.fifoclose();
@@ -87,4 +93,3 @@ int main()
 
    return 0;
 }
-#endif

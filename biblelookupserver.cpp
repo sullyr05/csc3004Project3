@@ -26,12 +26,16 @@ using namespace std;
 /* Server main line,create name MAP, wait for and serve requests */
 int main()
 {
-   #ifdef logging logFile.open(LogFile, ios::out); #endif
+   #ifdef logging
+   logFile.open(logFilename, ios::out); 
+   #endif
 
 
    string line;  // A line from the text file
    string reply; //reply to send back to client
    LookupResult status = OTHER; //for lookup
+   Bible webBible("/home/class/csc3004/Bibles/web-complete"); // Bible for lookup
+
 
    /* Create the communication fifos */
    Fifo recfifo("bibleRequest");
@@ -52,7 +56,6 @@ int main()
          continue; //finish loop iteration with invalid input or end
       }
 
-      Bible webBible("/home/class/csc3004/Bibles/web-complete"); // Bible for lookup
 
       // Parse thru
       stringstream ss(request);
@@ -97,14 +100,14 @@ int main()
             }
          }
       } 
-      else if (ref.getChapter() <= 0 || ref.getVerse() <= 0){
+      else if (ref.getChapter() <= 0 || ref.getVerse() <= 0){ //negative reference case
          cout << "You must enter a positive integer for chapter and verse numbers. ";
          log ("Negative integer attempted for chapter/verse");
          sendfifo.send("Please enter a positive integer for chapter and verse numbers!");
       }
       else {
-         sendfifo.send(webBible.error(status) + "\n There is no verse " + 
-         verseStr + " in chapter " + chapter + " of the book of that book!\n");
+         sendfifo.send(webBible.error(status) + "\n There is no verse " + // all other invalid reference cases
+         verseStr + " in chapter " + chapter + " of that book!\n");
          log("Result status: " + webBible.error(status));
          cout << "Result status: " + webBible.error(status) << endl;
       }
@@ -115,4 +118,3 @@ int main()
   recfifo.fifoclose(); 
   sendfifo.fifoclose();
 }
-#endif
